@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Soc App ระบบจัดการ Soc ที่เกิดขึ้น</title>
+
+  <!-- TailwindCSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- jQuery + Plugins -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/localization/messages_th.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"></script>
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- DataTables -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/v/bs5/dt-2.0.8/datatables.min.css"/>
+  <script src="https://cdn.datatables.net/v/bs5/dt-2.0.8/datatables.min.js"></script>
+
+  <!-- Chart.js (Dashboard) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+  <!-- SheetJS (Export to Excel - local) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
+
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, 'TH Sarabun New', sans-serif; }
+    .underline-tab { border-bottom: 3px solid #7F00FF; }
+    .card { background:#fff; border-radius:0.75rem; box-shadow: 0 10px 20px rgba(0,0,0,.05); padding:1.5rem; }
+    .gradient-bg { background: linear-gradient(135deg,#ecfdf5 0%,#f0f9ff 50%,#f8fafc 100%); }
+    .btn-primary { padding:.5rem 1rem; border-radius:.375rem; font-weight:600; background: linear-gradient(135deg,#34d399,#86efac); }
+    .btn-secondary { padding:.5rem 1rem; border-radius:.375rem; font-weight:600; background:#e5e7eb; }
+    .icon { width: 22px; height: 22px; }
+    .hidden-tab { display:none; }
+    .dt-container .dt-search input { width: 220px !important; }
+    label.error { color:#ef4444; font-size: 0.85rem; margin-top: 4px; display:block; }
+  </style>
+</head>
+<body class="min-h-screen gradient-bg text-gray-900">
+
+  <!-- Header -->
+  <header class="py-8">
+    <div class="max-w-6xl mx-auto text-center">
+      <div class="text-4xl md:text-5xl font-extrabold tracking-wide select-none">SOC APP</div>
+      <div class="mt-2 text-lg md:text-xl text-gray-700">Soc App ระบบจัดการ Soc ที่เกิดขึ้น</div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="mt-4">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex items-center gap-3 justify-center">
+        <button data-tab="tab-dashboard" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-md hover:bg-white/60 focus:outline-none underline-tab">
+          <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+          <span>Dashboard</span>
+        </button>
+        <button data-tab="tab-list" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-md hover:bg-white/60 focus:outline-none">
+          <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h12v2H3v-2z"/></svg>
+          <span>รายการตรวจเช็ค soc</span>
+        </button>
+        <button data-tab="tab-admin" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-md hover:bg-white/60 focus:outline-none">
+          <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/></svg>
+          <span>ล็อคอินเข้าสู่ระบบ admin</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="max-w-6xl mx-auto mt-6 mb-16 space-y-8">
+
+    <div class="flex items-center justify-between gap-4 flex-wrap">
+      <div class="text-sm text-gray-700">
+        สถานะปัจจุบัน: <span id="adminState" class="font-semibold text-emerald-600">ผู้ใช้งานทั่วไป</span>
+      </div>
+      <div class="flex gap-2">
+        <button id="btnExportLocal" class="btn-secondary">ดาวน์โหลดไฟล์ทั้งหมด (.xlsx)</button>
+        <button id="btnExportDrive" class="btn-secondary">ส่งออกขึ้น Google Drive (ผ่าน GAS)</button>
+      </div>
+    </div>
+
+    <!-- Tab: Dashboard -->
+    <section id="tab-dashboard">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="card" style="background:linear-gradient(135deg,#ecfeff,#cffafe)">
+          <div class="text-gray-500">จำนวนการตรวจเช็ครวม</div>
+          <div id="sumTotal" class="text-3xl font-bold mt-2">0</div>
+        </div>
+        <div class="card" style="background:linear-gradient(135deg,#fef9c3,#fde68a)">
+          <div class="text-gray-500">สถานะรอดำเนินการ</div>
+          <div id="sumPending" class="text-3xl font-bold mt-2">0</div>
+        </div>
+        <div class="card" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe)">
+          <div class="text-gray-500">สถานะเสร็จสิ้นแล้ว</div>
+          <div id="sumDone" class="text-3xl font-bold mt-2">0</div>
+        </div>
+      </div>
+
+      <div class="card mt-4">
+        <div class="flex items-center justify-between">
+          <div class="text-lg font-semibold">Top 5 ชั้นที่เกิด SOC มากที่สุด</div>
+          <div class="text-sm text-gray-500">รูปแบบ Dashboard</div>
+        </div>
+        <div class="mt-4"><canvas id="topFloorsChart" height="120"></canvas></div>
+      </div>
+    </section>
+
+    <!-- Tab: รายการตรวจเช็ค soc -->
+    <section id="tab-list" class="hidden-tab">
+      <div class="card">
+        <div class="text-lg font-semibold mb-4">ฟอร์มการตรวจเช็ค SOC</div>
+        <form id="socForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">วันที่ตรวจเช็ค <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <input type="date" name="date" id="date" class="w-full border rounded-md px-3 py-2 pr-10" required>
+              <div class="absolute right-3 top-2.5 text-gray-400 pointer-events-none">
+                <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v13a2 2 0 002 2h14a2 2 0 002-2V6c0-1.1-.9-2-2-2zm0 15H5V10h14v9z"/></svg>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">ชั้น <span class="text-red-500">*</span></label>
+            <select name="floor" id="floor" class="w-full border rounded-md px-3 py-2" required>
+              <option value="">-- เลือกชั้น --</option>
+              <option>ชั้น9</option><option>ชั้น8</option><option>ชั้น7</option><option>ชั้น6</option>
+              <option>ชั้น5</option><option>ชั้น4</option><option>ชั้น3</option><option>ชั้น2</option>
+              <option>ชั้น1</option><option>Packer</option><option>Pallet</option><option>อื่นๆ</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">ชื่อผู้ตรวจเช็ค-ผู้พบเจอ <span class="text-red-500">*</span></label>
+            <select name="who" id="who" class="w-full border rounded-md px-3 py-2" required>
+              <option value="">-- เลือกกลุ่ม --</option>
+              <option>Operation</option><option>Local</option><option>แม่บ้าน</option>
+              <option>Am</option><option>ซ่อม</option><option>อื่นๆ</option>
+            </select>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium mb-1">รายละเอียดที่พบ <span class="text-red-500">*</span></label>
+            <textarea name="detail" id="detail" rows="3" class="w-full border rounded-md px-3 py-2" placeholder="ระบุรายละเอียดที่เกิด soc…" required></textarea>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium mb-1">แนบไฟล์ (ถ้ามี) — รองรับ PDF, JPG, PNG</label>
+            <input type="file" id="file" accept=".pdf,.jpg,.jpeg,.png" class="w-full border rounded-md px-3 py-2 bg-white">
+          </div>
+          <div class="md:col-span-2 flex gap-3">
+            <button type="submit" class="btn-primary">ส่งคำขอ</button>
+            <button type="reset" class="btn-secondary">ยกเลิก</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card mt-6">
+        <div class="flex items-center justify-between flex-wrap gap-3">
+          <div class="text-lg font-semibold">รายการตรวจเช็ค soc</div>
+          <div class="flex items-center gap-2">
+            <label class="text-sm">กรองวันที่:</label>
+            <select id="dateQuickFilter" class="border rounded-md px-2 py-1">
+              <option value="all">ทั้งหมด</option>
+              <option value="day">รายวัน (วันนี้)</option>
+              <option value="week">รายสัปดาห์ (สัปดาห์นี้)</option>
+              <option value="month">รายเดือน (เดือนนี้)</option>
+            </select>
+          </div>
+        </div>
+        <div class="mt-4 overflow-x-auto">
+          <table id="socTable" class="display nowrap" style="width:100%">
+            <thead>
+              <tr>
+                <th>วันที่ตรวจเช็ค</th>
+                <th>รายละเอียดที่พบ</th>
+                <th>ชั้น</th>
+                <th>ผู้ตรวจเช็ค-ผู้พบเจอ</th>
+                <th>สถานะ</th>
+                <th>ไฟล์แนบ</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab: Admin -->
+    <section id="tab-admin" class="hidden-tab">
+      <div class="card">
+        <div class="flex items-center justify-between">
+          <div class="text-lg font-semibold">ล็อคอินเข้าสู่ระบบ admin</div>
+          <div id="adminBadge" class="text-sm px-3 py-1 rounded-full bg-gray-200">สถานะ: ผู้ใช้งานทั่วไป</div>
+        </div>
+
+        <div id="adminLoginArea" class="mt-4">
+          <label class="block text-sm font-medium mb-1">รหัส Admin</label>
+          <div class="flex gap-2">
+            <input type="password" id="adminPass" class="border rounded-md px-3 py-2 w-64" placeholder="ใส่รหัส admin123">
+            <button id="btnAdminLogin" class="btn-primary">ล็อคอิน</button>
+          </div>
+        </div>
+
+        <div id="adminPanel" class="mt-6 hidden">
+          <div class="flex items-center justify-between flex-wrap gap-3">
+            <div class="text-sm text-emerald-700 font-medium">คุณกำลังใช้งานในโหมด Admin</div>
+            <button id="btnAdminLogout" class="btn-secondary">ออกจากระบบ</button>
+          </div>
+
+          <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="card">
+              <div class="text-base font-semibold mb-2">อัปเดทสถานะ (ระบุผู้ปรับปรุง)</div>
+              <div class="grid grid-cols-1 gap-3">
+                <div>
+                  <label class="block text-sm font-medium mb-1">ชื่อผู้อัปเดทสถานะ</label>
+                  <select id="adminUpdater" class="w-full border rounded-md px-3 py-2">
+                    <option value="">-- เลือกชื่อ --</option>
+                    <option>Admin วอ</option>
+                    <option>Admin Operation</option>
+                    <option>Admin ซ่อม</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1">ตั้งค่าสถานะด่วน</label>
+                  <div class="flex flex-wrap gap-2">
+                    <button class="btn-secondary quick-status" data-status="รอดำเนินการ">รอดำเนินการ</button>
+                    <button class="btn-secondary quick-status" data-status="เสร็จสิ้น">เสร็จสิ้น</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="text-base font-semibold mb-2">การจัดการ</div>
+              <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                <li>Admin สามารถแก้ไข/ลบ/อัปเดตสถานะได้ทั้งหมด</li>
+                <li>การลบมีการยืนยันผ่าน SweetAlert2</li>
+                <li>แก้ไขใน Modal แล้วบันทึกได้ทันที</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal -->
+  <div id="modal" class="fixed inset-0 bg-black/40 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+      <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl">
+        <div class="flex items-center justify-between px-6 py-4 border-b">
+          <div class="font-semibold">รายละเอียดรายการ SOC</div>
+          <button id="modalClose" class="text-gray-500 hover:text-gray-700">
+            <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12 19 6.4z"/></svg>
+          </button>
+        </div>
+        <div class="px-6 py-4">
+          <form id="modalForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input type="hidden" id="modalId">
+            <div>
+              <label class="block text-sm font-medium mb-1">วันที่ตรวจเช็ค</label>
+              <input type="date" id="modalDate" class="w-full border rounded-md px-3 py-2">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">ชั้น</label>
+              <select id="modalFloor" class="w-full border rounded-md px-3 py-2">
+                <option>ชั้น9</option><option>ชั้น8</option><option>ชั้น7</option><option>ชั้น6</option>
+                <option>ชั้น5</option><option>ชั้น4</option><option>ชั้น3</option><option>ชั้น2</option>
+                <option>ชั้น1</option><option>Packer</option><option>Pallet</option><option>อื่นๆ</option>
+              </select>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium mb-1">รายละเอียดที่พบ</label>
+              <textarea id="modalDetail" rows="3" class="w-full border rounded-md px-3 py-2"></textarea>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">ผู้ตรวจเช็ค-ผู้พบเจอ</label>
+              <select id="modalWho" class="w-full border rounded-md px-3 py-2">
+                <option>Operation</option><option>Local</option><option>แม่บ้าน</option>
+                <option>Am</option><option>ซ่อม</option><option>อื่นๆ</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">สถานะ</label>
+              <select id="modalStatus" class="w-full border rounded-md px-3 py-2">
+                <option>รอดำเนินการ</option>
+                <option>เสร็จสิ้น</option>
+              </select>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium mb-1">ไฟล์แนบ</label>
+              <div id="modalFileArea" class="text-sm text-gray-600">— ไม่มีไฟล์แนบ —</div>
+              <div class="mt-2">
+                <input type="file" id="modalFile" accept=".pdf,.jpg,.jpeg,.png" class="w-full border rounded-md px-3 py-2 bg-white">
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="px-6 py-4 border-t flex justify-end gap-2">
+          <button id="modalDelete" class="btn-secondary">ลบ</button>
+          <button id="modalSave" class="btn-primary">บันทึก</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="py-10">
+    <div class="max-w-6xl mx-auto text-center text-sm text-gray-600">© 2025 Soc App พัฒนาโดย วรวิทย์ ศรีรักษา</div>
+  </footer>
+
+<script>
+// ================== CONFIG ==================
+const API_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL"; // <-- วาง URL ของ Web App (Deploy > type: Web app > anyone)
+const USE_API = !!API_URL && !/YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL/.test(API_URL);
+
+// ================== LOCAL STORE ==================
+const LS_KEY = 'soc_app_data';
+const initialData = { records: [], meta: { version: 1 } };
+let store = loadStore();
+let adminLogged = false;
+let dt; // DataTable
+let selectedRowId = null; // for quick status
+let chart;
+
+// ---------------- Local helpers ----------------
+function loadStore(){ try{ const raw = localStorage.getItem(LS_KEY); return raw? JSON.parse(raw): structuredClone(initialData);}catch(e){return structuredClone(initialData);}}
+function saveStore(){ localStorage.setItem(LS_KEY, JSON.stringify(store)); refreshSummary(); refreshChart(); if (dt) dt.rows().invalidate().draw(false); }
+function uid(){ return 'id_' + Math.random().toString(36).slice(2,10); }
+function formatDateISO(d){ const t=new Date(d); if(isNaN(t)) return ''; const y=t.getFullYear(), m=String(t.getMonth()+1).padStart(2,'0'), day=String(t.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`;}
+function todayISO(){ return formatDateISO(new Date()); }
+function weekRange(date=new Date()){ const d=new Date(date); const day=(d.getDay()+6)%7; const start=new Date(d); start.setDate(d.getDate()-day); const end=new Date(start); end.setDate(start.getDate()+6); return [formatDateISO(start),formatDateISO(end)]; }
+function monthRange(date=new Date()){ const d=new Date(date); const start=new Date(d.getFullYear(),d.getMonth(),1); const end=new Date(d.getFullYear(),d.getMonth()+1,0); return [formatDateISO(start),formatDateISO(end)]; }
+function escapeHtml(s=''){ return s.replace(/[&<>\"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
+function toDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=e=>res(e.target.result); r.onerror=rej; r.readAsDataURL(file); }); }
+
+// ================== API HELPERS ==================
+async function apiCall(action, payload={}){
+  if(!USE_API) return { ok:false, message:'API not configured' };
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json' },
+    body: JSON.stringify({ action, payload })
+  });
+  const data = await res.json().catch(()=>({ ok:false, message:'Invalid JSON' }));
+  return data;
+}
+
+async function apiList(){
+  const r = await apiCall('list', {});
+  return r.ok? r.data: [];
+}
+async function apiCreate(rec){
+  const r = await apiCall('create', rec);
+  return r.ok? r.data: null;
+}
+async function apiUpdate(rec){
+  const r = await apiCall('update', rec);
+  return r.ok;
+}
+async function apiDelete(id){
+  const r = await apiCall('delete', { id });
+  return r.ok;
+}
+async function apiExport(){
+  const r = await apiCall('export', {});
+  return r;
+}
+
+// ================== UI: Tabs ==================
+function setTab(tabId){
+  document.querySelectorAll('[id^="tab-"]').forEach(el=>el.classList.add('hidden-tab'));
+  document.getElementById(tabId).classList.remove('hidden-tab');
+  document.querySelectorAll('.tab-btn').forEach(btn=>btn.classList.remove('underline-tab'));
+  document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('underline-tab');
+}
+
+// ================== Dashboard ==================
+function refreshSummary(){
+  const total = store.records.length;
+  const pending = store.records.filter(r=>r.status==='รอดำเนินการ').length;
+  const done = store.records.filter(r=>r.status==='เสร็จสิ้น').length;
+  $('#sumTotal').text(total); $('#sumPending').text(pending); $('#sumDone').text(done);
+}
+
+function refreshChart(){
+  const counts = {}; store.records.forEach(r=>{ counts[r.floor]=(counts[r.floor]||0)+1; });
+  const entries = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const labels = entries.map(e=>e[0]); const data = entries.map(e=>e[1]);
+  const ctx = document.getElementById('topFloorsChart').getContext('2d');
+  if (chart) chart.destroy();
+  chart = new Chart(ctx, { type:'bar', data:{ labels, datasets:[{ label:'จำนวน', data }] }, options:{ responsive:true, plugins:{ legend:{ display:false }}}});
+}
+
+// ================== DataTable ==================
+function buildTable(){
+  if (dt) { dt.destroy(); $('#socTable tbody').empty(); }
+  store.records.forEach(r=>{
+    $('#socTable tbody').append(`
+      <tr data-id="${r.id}">
+        <td>${r.date}</td>
+        <td class="max-w-[260px] whitespace-pre-wrap">${escapeHtml(r.detail)}</td>
+        <td>${r.floor}</td>
+        <td>${r.who}</td>
+        <td>${r.status}</td>
+        <td>${r.fileName ? `<a href="${r.fileUrl || r.fileDataURL || '#'}" class="underline" target="_blank" rel="noopener">${r.fileName}</a>` : '—'}</td>
+        <td>
+          <div class="flex items-center gap-2">
+            <button class="btn-view px-2 py-1 rounded-md bg-blue-100 hover:bg-blue-200" title="ดู">
+              <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7zm0 12a5 5 0 110-10 5 5 0 010 10z"/></svg>
+            </button>
+            <button class="btn-edit px-2 py-1 rounded-md bg-amber-100 hover:bg-amber-200" title="แก้ไข" ${!adminLogged?'disabled':''}>
+              <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.2V21h3.8l11-11-3.8-3.8-11 11zM20.7 7.0c.4-.4.4-1 0-1.4L18.4 3.3c-.4-.4-1-.4-1.4 0l-1.8 1.8 3.8 3.8 1.7-1.7z"/></svg>
+            </button>
+            <button class="btn-del px-2 py-1 rounded-md bg-rose-100 hover:bg-rose-200" title="ลบ" ${!adminLogged?'disabled':''}>
+              <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M6 7h12v2H6V7zm2 3h8l-1 10H9L8 10zm3-7h2l1 2H10l1-2z"/></svg>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `);
+  });
+  dt = new DataTable('#socTable', { responsive:true, pageLength:10, order:[[0,'desc']], columnDefs:[{targets:[6],orderable:false}], language:{ url:'https://cdn.datatables.net/plug-ins/1.13.6/i18n/th-TH.json' } });
+}
+
+function applyDateQuickFilter(mode){
+  const colIdx=0; const [wStart,wEnd]=weekRange(); const [mStart,mEnd]=monthRange(); const today=todayISO();
+  if (mode==='day'){ dt.column(colIdx).search('^'+today+'$', true, false).draw(); }
+  else if (mode==='week'){
+    $.fn.dataTable.ext.search=$.fn.dataTable.ext.search||[];
+    $.fn.dataTable.ext.search.length=0;
+    $.fn.dataTable.ext.search.push((settings,data)=>{ const d=data[colIdx]; return d>=wStart && d<=wEnd; });
+    dt.draw(); dt.column(colIdx).search('');
+  } else if (mode==='month'){
+    $.fn.dataTable.ext.search=$.fn.dataTable.ext.search||[];
+    $.fn.dataTable.ext.search.length=0;
+    $.fn.dataTable.ext.search.push((settings,data)=>{ const d=data[colIdx]; return d>=mStart && d<=mEnd; });
+    dt.draw(); dt.column(colIdx).search('');
+  } else { $.fn.dataTable.ext.search.length=0; dt.column(colIdx).search('').draw(); }
+}
+
+// ================== Form submit ==================
+$('#socForm').validate({
+  rules:{ date:{required:true}, detail:{required:true,minlength:3}, floor:{required:true}, who:{required:true} },
+  submitHandler: async function(form){
+    $.LoadingOverlay('show');
+    try{
+      const fileInput = document.getElementById('file');
+      let fileObj = { fileName:'', fileType:'', fileDataURL:'', fileUrl:'' };
+      if (fileInput.files && fileInput.files[0]){
+        const f=fileInput.files[0];
+        const ok=['application/pdf','image/jpeg','image/png'].includes(f.type);
+        if(!ok){ $.LoadingOverlay('hide'); Swal.fire('ประเภทไฟล์ไม่ถูกต้อง','รองรับเฉพาะ PDF, JPG, PNG','warning'); return; }
+        fileObj.fileName=f.name; fileObj.fileType=f.type; fileObj.fileDataURL=await toDataURL(f);
+      }
+      const rec={ id:uid(), date:$('#date').val(), detail:$('#detail').val().trim(), floor:$('#floor').val(), who:$('#who').val(), status:'รอดำเนินการ', ...fileObj, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(), updatedBy:'' };
+
+      if (USE_API){
+        const created = await apiCreate(rec);
+        if (!created){ throw new Error('บันทึกขึ้น Google Sheet ไม่สำเร็จ'); }
+        // sync from server instead of trusting local
+        const list = await apiList();
+        store.records = list;
+      }else{
+        store.records.push(rec);
+      }
+      saveStore();
+      form.reset();
+      $.LoadingOverlay('hide');
+      Swal.fire('ส่งคำขอเรียบร้อย','','success');
+    }catch(e){
+      $.LoadingOverlay('hide'); Swal.fire('เกิดข้อผิดพลาด', e.message || 'ไม่สามารถบันทึกได้', 'error');
+    }
+  }
+});
+
+// ================== Modal handlers ==================
+function openModalById(id){
+  const rec = store.records.find(r=>r.id===id); if(!rec) return;
+  $('#modalId').val(rec.id); $('#modalDate').val(rec.date); $('#modalDetail').val(rec.detail); $('#modalFloor').val(rec.floor); $('#modalWho').val(rec.who); $('#modalStatus').val(rec.status);
+  if (rec.fileName){
+    const href = rec.fileUrl || rec.fileDataURL || '#';
+    $('#modalFileArea').html(`<div class="flex items-center gap-2"><a class="underline" href="${href}" target="_blank" rel="noopener">${rec.fileName}</a><span class="text-xs text-gray-500">(${rec.fileType||'ไฟล์แนบ'})</span></div>`);
+  } else { $('#modalFileArea').text('— ไม่มีไฟล์แนบ —'); }
+  $('#modalForm :input').prop('disabled', !adminLogged);
+  $('#modalSave').prop('disabled', !adminLogged);
+  $('#modalDelete').prop('disabled', !adminLogged);
+  $('#modal').removeClass('hidden');
+}
+$('#modalClose').on('click', ()=> $('#modal').addClass('hidden'));
+$('#socTable').on('click','.btn-view', function(){ const id=$(this).closest('tr').data('id'); selectedRowId=id; openModalById(id); });
+$('#socTable').on('click','.btn-edit', function(){ if(!adminLogged) return; const id=$(this).closest('tr').data('id'); selectedRowId=id; openModalById(id); });
+$('#socTable').on('click','.btn-del', async function(){
+  if(!adminLogged) return; const id=$(this).closest('tr').data('id'); const rec=store.records.find(r=>r.id===id);
+  const res=await Swal.fire({ title:'ยืนยันการลบ?', text:`ต้องการลบรายการวันที่ ${rec?.date||''} ใช่หรือไม่`, icon:'warning', showCancelButton:true, confirmButtonText:'ลบ', cancelButtonText:'ยกเลิก' });
+  if (res.isConfirmed){
+    if (USE_API){ await apiDelete(id); const list=await apiList(); store.records=list; }
+    else { store.records = store.records.filter(r=>r.id!==id); }
+    saveStore(); Swal.fire('ลบแล้ว','','success');
+  }
+});
+
+$('#modalSave').on('click', async function(){
+  if(!adminLogged) return;
+  $.LoadingOverlay('show');
+  try{
+    const id=$('#modalId').val();
+    const idx=store.records.findIndex(r=>r.id===id);
+    if (idx<0) throw new Error('ไม่พบรายการ');
+
+    // optional file change
+    const fileInput=document.getElementById('modalFile');
+    if (fileInput.files && fileInput.files[0]){
+      const f=fileInput.files[0];
+      const ok=['application/pdf','image/jpeg','image/png'].includes(f.type);
+      if (!ok) throw new Error('ประเภทไฟล์ไม่ถูกต้อง');
+      store.records[idx].fileName=f.name;
+      store.records[idx].fileType=f.type;
+      store.records[idx].fileDataURL=await toDataURL(f);
+      store.records[idx].fileUrl=''; // reset until uploaded
+    }
+
+    store.records[idx].date=$('#modalDate').val();
+    store.records[idx].detail=$('#modalDetail').val().trim();
+    store.records[idx].floor=$('#modalFloor').val();
+    store.records[idx].who=$('#modalWho').val();
+    store.records[idx].status=$('#modalStatus').val();
+    store.records[idx].updatedAt=new Date().toISOString();
+    store.records[idx].updatedBy=$('#adminUpdater').val() || 'Admin';
+
+    if (USE_API){
+      const ok = await apiUpdate(store.records[idx]);
+      if (!ok) throw new Error('อัปเดตขึ้น Google Sheet ไม่สำเร็จ');
+      const list=await apiList();
+      store.records=list;
+    }
+
+    saveStore(); $('#modal').addClass('hidden'); $.LoadingOverlay('hide'); Swal.fire('บันทึกสำเร็จ','','success');
+  }catch(e){ $.LoadingOverlay('hide'); Swal.fire('เกิดข้อผิดพลาด', e.message || 'ไม่สามารถบันทึกได้', 'error'); }
+});
+
+$('#socTable').on('click','.file-link', function(e){
+  // left for compatibility, now anchors use href
+});
+
+// ================== Admin login/logout ==================
+function refreshAdminUI(){
+  $('#adminState').text(adminLogged ? 'Admin' : 'ผู้ใช้งานทั่วไป')
+    .toggleClass('text-emerald-600', adminLogged)
+    .toggleClass('text-gray-800', !adminLogged);
+  $('#adminBadge').text('สถานะ: ' + (adminLogged ? 'Admin' : 'ผู้ใช้งานทั่วไป'))
+    .removeClass('bg-gray-200 bg-emerald-100')
+    .addClass(adminLogged ? 'bg-emerald-100' : 'bg-gray-200');
+  $('#socTable tbody tr').each(function(){ $(this).find('.btn-edit,.btn-del').prop('disabled', !adminLogged); });
+  $('#adminPanel').toggleClass('hidden', !adminLogged);
+  $('#adminLoginArea').toggleClass('hidden', adminLogged);
+}
+$('#btnAdminLogin').on('click', function(){
+  const pw=$('#adminPass').val();
+  if (pw==='admin123'){ adminLogged=true; $('#adminPass').val(''); refreshAdminUI(); Swal.fire('เข้าสู่ระบบสำเร็จ','','success'); }
+  else { Swal.fire('รหัสไม่ถูกต้อง','','error'); }
+});
+$('#btnAdminLogout').on('click', function(){ adminLogged=false; refreshAdminUI(); Swal.fire('ออกจากระบบแล้ว','','success'); });
+$('.quick-status').on('click', async function(){
+  if(!adminLogged) return; const status=$(this).data('status'); const updater=$('#adminUpdater').val()||'Admin';
+  const applyTo = async (id)=>{
+    const rec=store.records.find(r=>r.id===id); if(!rec) return;
+    rec.status=status; rec.updatedAt=new Date().toISOString(); rec.updatedBy=updater;
+    if (USE_API){ await apiUpdate(rec); const list=await apiList(); store.records=list; }
+    saveStore(); Swal.fire('อัปเดตสถานะแล้ว', `สถานะใหม่: ${status}`, 'success');
+  };
+  if (selectedRowId){ await applyTo(selectedRowId); }
+  else {
+    const options=store.records.map(r=>({id:r.id,text:`${r.date} • ${r.floor} • ${r.detail.slice(0,30)}${r.detail.length>30?'…':''}`}));
+    if(!options.length){ Swal.fire('ไม่มีรายการ','','info'); return; }
+    const inputOptions={}; options.forEach(o=> inputOptions[o.id]=o.text);
+    const res=await Swal.fire({ title:'เลือกแถวที่ต้องการอัปเดต', input:'select', inputOptions, showCancelButton:true, confirmButtonText:'อัปเดต' });
+    if (res.isConfirmed && res.value) await applyTo(res.value);
+  }
+});
+
+// ================== Export ==================
+$('#btnExportLocal').on('click', function(){
+  if(!store.records.length){ Swal.fire('ไม่มีข้อมูลให้ดาวน์โหลด','','info'); return; }
+  const rows = store.records.map(r=>({ วันที่ตรวจเช็ค:r.date, รายละเอียดที่พบ:r.detail, ชั้น:r.floor, ผู้ตรวจเช็ค_ผู้พบเจอ:r.who, สถานะ:r.status, ผู้อัปเดตสถานะ:r.updatedBy||'', เวลาอัปเดต:r.updatedAt, ไฟล์แนบ:r.fileName||'' }));
+  const ws=XLSX.utils.json_to_sheet(rows); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'SOC');
+  const fileName = `SOC_All_${formatDateISO(new Date())}.xlsx`; XLSX.writeFile(wb, fileName);
+});
+
+$('#btnExportDrive').on('click', async function(){
+  if (!USE_API){ Swal.fire('ยังไม่ได้ตั้งค่า API_URL','','info'); return; }
+  $.LoadingOverlay('show');
+  const r = await apiExport().catch(()=>({ok:false}));
+  $.LoadingOverlay('hide');
+  if (r && r.ok){ Swal.fire('ส่งออกขึ้น Google Drive แล้ว', r.message || '', 'success'); }
+  else { Swal.fire('ไม่สามารถส่งออกขึ้น Google Drive ได้', r && r.message ? r.message : '', 'error'); }
+});
+
+// ================== Init ==================
+async function syncFromServerIfAny(){
+  if (USE_API){
+    try{ const list=await apiList(); if (Array.isArray(list)){ store.records=list; saveStore(); } }catch(_){}
+  }
+}
+
+$(function(){
+  setTab('tab-dashboard'); refreshSummary(); refreshChart(); buildTable(); refreshAdminUI();
+  $('.tab-btn').on('click', function(){ const t=$(this).data('tab'); setTab(t); });
+  $('#dateQuickFilter').on('change', function(){ applyDateQuickFilter(this.value); });
+  $('#socTable tbody').on('click','tr', function(e){ if($(e.target).closest('button,a').length) return; $('#socTable tbody tr').removeClass('bg-emerald-50'); $(this).addClass('bg-emerald-50'); selectedRowId=$(this).data('id'); });
+  // initial pull
+  syncFromServerIfAny();
+});
+</script>
+</body>
+</html>
