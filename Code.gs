@@ -12,8 +12,8 @@
  *    - Who has access: Anyone
  */
 
-const SPREADSHEET_ID = "ใส่ลิ้ง";
-const DRIVE_FOLDER_ID = "ใส่ลิ้ง";
+const SPREADSHEET_ID = "1nTaZ7QgX6CEp_Hyp-lrHYhqSbCC4717ligv2yvqb3e8";
+const DRIVE_FOLDER_ID = "1pqA2G9jsf0WBfaorAikqV9FUAHVkxm8j?usp";
 const SHEET_NAME = "SOC"; // will be created if not exists
 
 function doOptions(e){
