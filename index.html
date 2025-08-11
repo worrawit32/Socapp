@@ -1,628 +1,618 @@
-<!-- Index.html (สมบูรณ์ - คัดลอก HTML เดิมและแทนที่ <script> ด้วยส่วน JS ที่ปรับแล้วด้านล่าง) -->
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Soc App ระบบจัดการ Soc ที่เกิดขึ้น</title>
+  <title>Soc App - ระบบจัดการ SOC ที่เกิดขึ้น</title>
 
-  <!-- TailwindCSS -->
+  <!-- Tailwind CSS (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- jQuery + Plugins -->
+  <!-- jQuery (CDN) -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <!-- jQuery Validate (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/localization/messages_th.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"></script>
 
-  <!-- SweetAlert2 -->
+  <!-- SweetAlert2 (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  <!-- DataTables -->
-  <link rel="stylesheet" href="https://cdn.datatables.net/v/bs5/dt-2.0.8/datatables.min.css"/>
-  <script src="https://cdn.datatables.net/v/bs5/dt-2.0.8/datatables.min.js"></script>
+  <!-- Loading Overlay (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"></script>
 
-  <!-- Chart.js (Dashboard) -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <!-- DataTables (CDN) -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/v/bs5/dt-2.0.8/r-3.0.2/datatables.min.css"/>
+  <script src="https://cdn.datatables.net/v/bs5/dt-2.0.8/r-3.0.2/datatables.min.js"></script>
 
-  <!-- SheetJS (Export to Excel - local) -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
-
+  <!-- Thai fonts & base style -->
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, 'TH Sarabun New', sans-serif; }
-    .underline-tab { border-bottom: 3px solid #7F00FF; }
-    .card { background:#fff; border-radius:0.75rem; box-shadow: 0 10px 20px rgba(0,0,0,.05); padding:1.5rem; }
-    .gradient-bg { background: linear-gradient(135deg,#ecfdf5 0%,#f0f9ff 50%,#f8fafc 100%); }
-    .btn-primary { padding:.5rem 1rem; border-radius:.375rem; font-weight:600; background: linear-gradient(135deg,#34d399,#86efac); }
-    .btn-secondary { padding:.5rem 1rem; border-radius:.375rem; font-weight:600; background:#e5e7eb; }
-    .icon { width: 22px; height: 22px; }
-    .hidden-tab { display:none; }
-    .dt-container .dt-search input { width: 220px !important; }
-    label.error { color:#ef4444; font-size: 0.85rem; margin-top: 4px; display:block; }
+    html, body { font-family: ui-sans-serif, system-ui, -apple-system, 'Prompt', 'Sarabun', 'Roboto', 'Segoe UI', Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji'; }
+    .tab-active { border-bottom: 3px solid #7F00FF; }
   </style>
 </head>
-<body class="min-h-screen gradient-bg text-gray-900">
-
+<body class="bg-gray-50 min-h-screen flex flex-col">
   <!-- Header -->
-  <header class="py-8">
-    <div class="max-w-6xl mx-auto text-center">
-      <div class="text-4xl md:text-5xl font-extrabold tracking-wide select-none">SOC APP</div>
-      <div class="mt-2 text-lg md:text-xl text-gray-700">Soc App ระบบจัดการ Soc ที่เกิดขึ้น</div>
+  <header class="bg-white shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-6 text-center">
+      <div class="text-3xl font-extrabold tracking-wide select-none">SOC APP</div>
+      <div class="text-gray-600 mt-2">Soc App ระบบจัดการ Soc ที่เกิดขึ้น</div>
     </div>
   </header>
 
-  <!-- Navigation Tabs -->
-  <nav class="mt-4">
-    <div class="max-w-6xl mx-auto">
-      <div class="flex items-center gap-3 justify-center">
-        <button data-tab="tab-dashboard" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-md hover:bg-white/60 focus:outline-none underline-tab">
-          <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
-          <span>Dashboard</span>
-        </button>
-        <button data-tab="tab-list" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-md hover:bg-white/60 focus:outline-none">
-          <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h12v2H3v-2z"/></svg>
-          <span>รายการตรวจเช็ค soc</span>
-        </button>
-        <button data-tab="tab-admin" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-md hover:bg-white/60 focus:outline-none">
-          <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/></svg>
-          <span>ล็อคอินเข้าสู่ระบบ admin</span>
-        </button>
-      </div>
+  <!-- Nav Tabs -->
+  <nav class="bg-white border-b">
+    <div class="max-w-6xl mx-auto px-4">
+      <ul class="flex gap-6 py-3" id="tabs">
+        <!-- Dashboard -->
+        <li>
+          <button data-target="#tab-dashboard" class="tab-btn flex items-center gap-2 px-3 py-2 hover:text-indigo-600" aria-label="Dashboard">
+            <!-- Icon -->
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="#6366F1" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+            </svg>
+            <span>Dashboard</span>
+          </button>
+        </li>
+        <!-- รายการตรวจเช็ค soc -->
+        <li>
+          <button data-target="#tab-list" class="tab-btn flex items-center gap-2 px-3 py-2 hover:text-indigo-600" aria-label="รายการตรวจเช็ค soc">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="#22C55E" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7 7h10v2H7V7zm0 4h10v2H7v-2zm0 4h7v2H7v-2z"/>
+              <path d="M4 3h16a1 1 0 0 1 1 1v16l-4-3H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/>
+            </svg>
+            <span>รายการตรวจเช็ค soc</span>
+          </button>
+        </li>
+        <!-- ล็อคอิน Admin -->
+        <li class="ml-auto">
+          <button data-target="#tab-admin" class="tab-btn flex items-center gap-2 px-3 py-2 hover:text-indigo-600" aria-label="ล็อคอินเข้าสู่ระบบ admin">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="#F59E0B" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2a5 5 0 0 0-5 5v2H5a3 3 0 0 0-3 3v7h20v-7a3 3 0 0 0-3-3h-2V7a5 5 0 0 0-5-5zM9 7a3 3 0 1 1 6 0v2H9V7z"/>
+            </svg>
+            <span>ล็อคอินเข้าสู่ระบบ admin</span>
+          </button>
+        </li>
+      </ul>
     </div>
   </nav>
 
   <!-- Main -->
-  <main class="max-w-6xl mx-auto mt-6 mb-16 space-y-8">
+  <main class="flex-1">
+    <div class="max-w-6xl mx-auto px-4 py-6">
 
-    <div class="flex items-center justify-between gap-4 flex-wrap">
-      <div class="text-sm text-gray-700">
-        สถานะปัจจุบัน: <span id="adminState" class="font-semibold text-emerald-600">ผู้ใช้งานทั่วไป</span>
-      </div>
-      <div class="flex gap-2">
-        <button id="btnExportLocal" class="btn-secondary">ดาวน์โหลดไฟล์ทั้งหมด (.xlsx)</button>
-        <button id="btnExportDrive" class="btn-secondary">ส่งออกขึ้น Google Drive (ผ่าน GAS)</button>
-      </div>
-    </div>
+      <!-- Dashboard Tab -->
+      <section id="tab-dashboard" class="tab-panel">
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="rounded-2xl p-6 shadow-lg text-white" style="background: linear-gradient(135deg,#7F00FF,#E100FF)">
+            <div class="text-sm opacity-90">จำนวนการตรวจเช็ครวม</div>
+            <div class="text-3xl font-bold mt-2" id="card-total">0</div>
+          </div>
+          <div class="rounded-2xl p-6 shadow-lg text-white" style="background: linear-gradient(135deg,#0EA5E9,#22D3EE)">
+            <div class="text-sm opacity-90">รอดำเนินการ</div>
+            <div class="text-3xl font-bold mt-2" id="card-pending">0</div>
+          </div>
+          <div class="rounded-2xl p-6 shadow-lg text-white" style="background: linear-gradient(135deg,#10B981,#34D399)">
+            <div class="text-sm opacity-90">เสร็จสิ้นแล้ว</div>
+            <div class="text-3xl font-bold mt-2" id="card-done">0</div>
+          </div>
+        </div>
 
-    <!-- Tab: Dashboard -->
-    <section id="tab-dashboard">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="card" style="background:linear-gradient(135deg,#ecfeff,#cffafe)">
-          <div class="text-gray-500">จำนวนการตรวจเช็ครวม</div>
-          <div id="sumTotal" class="text-3xl font-bold mt-2">0</div>
+        <!-- Top 5 ชั้น -->
+        <div class="mt-6">
+          <div class="rounded-xl bg-white shadow-lg p-6">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold">Top 5 ชั้นที่เกิด SOC มากที่สุด</h3>
+              <button id="btn-download-xlsx" class="px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 text-sm">
+                ดาวน์โหลด Excel (Google Drive)
+              </button>
+            </div>
+            <div class="mt-4 text-sm text-gray-500">* แสดงผลแนว Data Studio (สรุปอันดับจากข้อมูลบนตาราง)</div>
+            <ol id="top5" class="mt-4 list-decimal pl-6 text-gray-700 space-y-1"></ol>
+          </div>
         </div>
-        <div class="card" style="background:linear-gradient(135deg,#fef9c3,#fde68a)">
-          <div class="text-gray-500">สถานะรอดำเนินการ</div>
-          <div id="sumPending" class="text-3xl font-bold mt-2">0</div>
-        </div>
-        <div class="card" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe)">
-          <div class="text-gray-500">สถานะเสร็จสิ้นแล้ว</div>
-          <div id="sumDone" class="text-3xl font-bold mt-2">0</div>
-        </div>
-      </div>
 
-      <div class="card mt-4">
-        <div class="flex items-center justify-between">
-          <div class="text-lg font-semibold">Top 5 ชั้นที่เกิด SOC มากที่สุด</div>
-          <div class="text-sm text-gray-500">รูปแบบ Dashboard</div>
-        </div>
-        <div class="mt-4"><canvas id="topFloorsChart" height="120"></canvas></div>
-      </div>
-    </section>
-
-    <!-- Tab: รายการตรวจเช็ค soc -->
-    <section id="tab-list" class="hidden-tab">
-      <div class="card">
-        <div class="text-lg font-semibold mb-4">ฟอร์มการตรวจเช็ค SOC</div>
-        <form id="socForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium mb-1">วันที่ตรวจเช็ค <span class="text-red-500">*</span></label>
-            <div class="relative">
-              <input type="date" name="date" id="date" class="w-full border rounded-md px-3 py-2 pr-10" required>
-              <div class="absolute right-3 top-2.5 text-gray-400 pointer-events-none">
-                <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v13a2 2 0 002 2h14a2 2 0 002-2V6c0-1.1-.9-2-2-2zm0 15H5V10h14v9z"/></svg>
-              </div>
+        <!-- รายการตรวจเช็ค soc (Table) -->
+        <div class="mt-6 rounded-xl bg-white shadow-lg p-6">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <h3 class="text-lg font-semibold">รายการตรวจเช็ค soc</h3>
+            <div class="flex items-center gap-2">
+              <select id="date-filter" class="border rounded-lg px-3 py-2 text-sm">
+                <option value="all">ทั้งหมด</option>
+                <option value="day">รายวัน</option>
+                <option value="week">รายสัปดาห์</option>
+                <option value="month">รายเดือน</option>
+              </select>
+              <input type="date" id="date-anchor" class="border rounded-lg px-3 py-2 text-sm"/>
             </div>
           </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">ชั้น <span class="text-red-500">*</span></label>
-            <select name="floor" id="floor" class="w-full border rounded-md px-3 py-2" required>
-              <option value="">-- เลือกชั้น --</option>
-              <option>ชั้น9</option><option>ชั้น8</option><option>ชั้น7</option><option>ชั้น6</option>
-              <option>ชั้น5</option><option>ชั้น4</option><option>ชั้น3</option><option>ชั้น2</option>
-              <option>ชั้น1</option><option>Packer</option><option>Pallet</option><option>อื่นๆ</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">ชื่อผู้ตรวจเช็ค-ผู้พบเจอ <span class="text-red-500">*</span></label>
-            <select name="who" id="who" class="w-full border rounded-md px-3 py-2" required>
-              <option value="">-- เลือกกลุ่ม --</option>
-              <option>Operation</option><option>Local</option><option>แม่บ้าน</option>
-              <option>Am</option><option>ซ่อม</option><option>อื่นๆ</option>
-            </select>
-          </div>
-          <div class="md:col-span-2">
-            <label class="block text-sm font-medium mb-1">รายละเอียดที่พบ <span class="text-red-500">*</span></label>
-            <textarea name="detail" id="detail" rows="3" class="w-full border rounded-md px-3 py-2" placeholder="ระบุรายละเอียดที่เกิด soc…" required></textarea>
-          </div>
-          <div class="md:col-span-2">
-            <label class="block text-sm font-medium mb-1">แนบไฟล์ (ถ้ามี) — รองรับ PDF, JPG, PNG</label>
-            <input type="file" id="file" accept=".pdf,.jpg,.jpeg,.png" class="w-full border rounded-md px-3 py-2 bg-white">
-          </div>
-          <div class="md:col-span-2 flex gap-3">
-            <button type="submit" class="btn-primary">ส่งคำขอ</button>
-            <button type="reset" class="btn-secondary">ยกเลิก</button>
-          </div>
-        </form>
-      </div>
-
-      <div class="card mt-6">
-        <div class="flex items-center justify-between flex-wrap gap-3">
-          <div class="text-lg font-semibold">รายการตรวจเช็ค soc</div>
-          <div class="flex items-center gap-2">
-            <label class="text-sm">กรองวันที่:</label>
-            <select id="dateQuickFilter" class="border rounded-md px-2 py-1">
-              <option value="all">ทั้งหมด</option>
-              <option value="day">รายวัน (วันนี้)</option>
-              <option value="week">รายสัปดาห์ (สัปดาห์นี้)</option>
-              <option value="month">รายเดือน (เดือนนี้)</option>
-            </select>
+          <div class="mt-4 overflow-x-auto">
+            <table id="socTable" class="min-w-full text-sm">
+              <thead>
+                <tr class="bg-gray-100 text-gray-700">
+                  <th class="px-3 py-2">วันที่ตรวจเช็ค</th>
+                  <th class="px-3 py-2">รายละเอียดที่พบ</th>
+                  <th class="px-3 py-2">ชั้น</th>
+                  <th class="px-3 py-2">ชื่อผู้ตรวจเช็ค-ผู้พบเจอ</th>
+                  <th class="px-3 py-2">สถานะ</th>
+                  <th class="px-3 py-2">Action</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
           </div>
         </div>
-        <div class="mt-4 overflow-x-auto">
-          <table id="socTable" class="display nowrap" style="width:100%">
-            <thead>
-              <tr>
-                <th>วันที่ตรวจเช็ค</th>
-                <th>รายละเอียดที่พบ</th>
-                <th>ชั้น</th>
-                <th>ผู้ตรวจเช็ค-ผู้พบเจอ</th>
-                <th>สถานะ</th>
-                <th>ไฟล์แนบ</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Tab: Admin -->
-    <section id="tab-admin" class="hidden-tab">
-      <div class="card">
-        <div class="flex items-center justify-between">
-          <div class="text-lg font-semibold">ล็อคอินเข้าสู่ระบบ admin</div>
-          <div id="adminBadge" class="text-sm px-3 py-1 rounded-full bg-gray-200">สถานะ: ผู้ใช้งานทั่วไป</div>
-        </div>
-
-        <div id="adminLoginArea" class="mt-4">
-          <label class="block text-sm font-medium mb-1">รหัส Admin</label>
-          <div class="flex gap-2">
-            <input type="password" id="adminPass" class="border rounded-md px-3 py-2 w-64" placeholder="ใส่รหัส admin123">
-            <button id="btnAdminLogin" class="btn-primary">ล็อคอิน</button>
-          </div>
-        </div>
-
-        <div id="adminPanel" class="mt-6 hidden">
-          <div class="flex items-center justify-between flex-wrap gap-3">
-            <div class="text-sm text-emerald-700 font-medium">คุณกำลังใช้งานในโหมด Admin</div>
-            <button id="btnAdminLogout" class="btn-secondary">ออกจากระบบ</button>
-          </div>
-
-          <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="card">
-              <div class="text-base font-semibold mb-2">อัปเดทสถานะ (ระบุผู้ปรับปรุง)</div>
-              <div class="grid grid-cols-1 gap-3">
-                <div>
-                  <label class="block text-sm font-medium mb-1">ชื่อผู้อัปเดทสถานะ</label>
-                  <select id="adminUpdater" class="w-full border rounded-md px-3 py-2">
-                    <option value="">-- เลือกชื่อ --</option>
-                    <option>Admin วอ</option>
-                    <option>Admin Operation</option>
-                    <option>Admin ซ่อม</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-medium mb-1">ตั้งค่าสถานะด่วน</label>
-                  <div class="flex flex-wrap gap-2">
-                    <button class="btn-secondary quick-status" data-status="รอดำเนินการ">รอดำเนินการ</button>
-                    <button class="btn-secondary quick-status" data-status="เสร็จสิ้น">เสร็จสิ้น</button>
+      <!-- List Tab (Form for general users) -->
+      <section id="tab-list" class="tab-panel hidden">
+        <div class="rounded-xl bg-white shadow-lg p-6">
+          <h3 class="text-lg font-semibold">ฟอร์มการตรวจเช็ค SOC</h3>
+          <form id="socForm" class="mt-4" enctype="multipart/form-data">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- วันที่ตรวจเช็ค -->
+              <div>
+                <label class="text-sm text-gray-600">วันที่ตรวจเช็ค</label>
+                <div class="relative mt-1">
+                  <input type="date" name="date" id="date" class="w-full border rounded-lg px-3 py-2 pr-10" required>
+                  <div class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M7 10h5v5H7z"/><path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 00-2 2v13a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zm0 15H5V9h14v10z"/></svg>
                   </div>
                 </div>
               </div>
-            </div>
-            <div class="card">
-              <div class="text-base font-semibold mb-2">การจัดการ</div>
-              <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                <li>Admin สามารถแก้ไข/ลบ/อัปเดตสถานะได้ทั้งหมด</li>
-                <li>การลบมีการยืนยันผ่าน SweetAlert2</li>
-                <li>แก้ไขใน Modal แล้วบันทึกได้ทันที</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- Modal -->
-  <div id="modal" class="fixed inset-0 bg-black/40 z-50 hidden">
-    <div class="flex items-center justify-center min-h-screen p-4">
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl">
-        <div class="flex items-center justify-between px-6 py-4 border-b">
-          <div class="font-semibold">รายละเอียดรายการ SOC</div>
-          <button id="modalClose" class="text-gray-500 hover:text-gray-700">
-            <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12 19 6.4z"/></svg>
-          </button>
-        </div>
-        <div class="px-6 py-4">
-          <form id="modalForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input type="hidden" id="modalId">
-            <div>
-              <label class="block text-sm font-medium mb-1">วันที่ตรวจเช็ค</label>
-              <input type="date" id="modalDate" class="w-full border rounded-md px-3 py-2">
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1">ชั้น</label>
-              <select id="modalFloor" class="w-full border rounded-md px-3 py-2">
-                <option>ชั้น9</option><option>ชั้น8</option><option>ชั้น7</option><option>ชั้น6</option>
-                <option>ชั้น5</option><option>ชั้น4</option><option>ชั้น3</option><option>ชั้น2</option>
-                <option>ชั้น1</option><option>Packer</option><option>Pallet</option><option>อื่นๆ</option>
-              </select>
-            </div>
-            <div class="md:col-span-2">
-              <label class="block text-sm font-medium mb-1">รายละเอียดที่พบ</label>
-              <textarea id="modalDetail" rows="3" class="w-full border rounded-md px-3 py-2"></textarea>
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1">ผู้ตรวจเช็ค-ผู้พบเจอ</label>
-              <select id="modalWho" class="w-full border rounded-md px-3 py-2">
-                <option>Operation</option><option>Local</option><option>แม่บ้าน</option>
-                <option>Am</option><option>ซ่อม</option><option>อื่นๆ</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1">สถานะ</label>
-              <select id="modalStatus" class="w-full border rounded-md px-3 py-2">
-                <option>รอดำเนินการ</option>
-                <option>เสร็จสิ้น</option>
-              </select>
-            </div>
-            <div class="md:col-span-2">
-              <label class="block text-sm font-medium mb-1">ไฟล์แนบ</label>
-              <div id="modalFileArea" class="text-sm text-gray-600">— ไม่มีไฟล์แนบ —</div>
-              <div class="mt-2">
-                <input type="file" id="modalFile" accept=".pdf,.jpg,.jpeg,.png" class="w-full border rounded-md px-3 py-2 bg-white">
+              <!-- ชั้น -->
+              <div>
+                <label class="text-sm text-gray-600">ชั้น</label>
+                <select name="floor" id="floor" class="w-full border rounded-lg px-3 py-2" required>
+                  <option value="">-- เลือกชั้น --</option>
+                  <option>ชั้น9</option><option>ชั้น8</option><option>ชั้น7</option><option>ชั้น6</option><option>ชั้น5</option>
+                  <option>ชั้น4</option><option>ชั้น3</option><option>ชั้น2</option><option>ชั้น1</option><option>Packer</option>
+                  <option>Pallet</option><option>อื่นๆ</option>
+                </select>
               </div>
+              <!-- รายละเอียดที่พบ -->
+              <div class="md:col-span-2">
+                <label class="text-sm text-gray-600">รายละเอียดที่พบ</label>
+                <textarea name="detail" id="detail" rows="3" class="w-full border rounded-lg px-3 py-2" placeholder="ระบุรายละเอียดที่เกิด soc…" required></textarea>
+              </div>
+              <!-- ผู้ตรวจเช็ค/ผู้พบเจอ -->
+              <div>
+                <label class="text-sm text-gray-600">ชื่อผู้ตรวจเช็ค-ผู้พบเจอ</label>
+                <select name="reporter" id="reporter" class="w-full border rounded-lg px-3 py-2" required>
+                  <option value="">-- เลือกผู้พบเจอ --</option>
+                  <option>Operation</option><option>Local</option><option>แม่บ้าน</option><option>Am</option><option>ซ่อม</option><option>อื่นๆ</option>
+                </select>
+              </div>
+              <!-- แนบไฟล์ -->
+              <div>
+                <label class="text-sm text-gray-600">แนบไฟล์ (PDF, JPG, PNG)</label>
+                <input type="file" name="file" id="file" accept=".pdf,.jpg,.jpeg,.png" class="w-full border rounded-lg px-3 py-2">
+              </div>
+            </div>
+
+            <div class="mt-6 flex gap-3">
+              <button type="submit" class="px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700">ส่งคำขอ</button>
+              <button type="reset" class="px-4 py-2 rounded-xl bg-gray-200 text-gray-700 hover:bg-gray-300">ยกเลิก</button>
             </div>
           </form>
         </div>
-        <div class="px-6 py-4 border-t flex justify-end gap-2">
-          <button id="modalDelete" class="btn-secondary">ลบ</button>
-          <button id="modalSave" class="btn-primary">บันทึก</button>
+      </section>
+
+      <!-- Admin Tab -->
+      <section id="tab-admin" class="tab-panel hidden">
+        <div class="rounded-xl bg-white shadow-lg p-6">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold">ล็อคอินเข้าสู่ระบบ Admin</h3>
+            <div class="text-sm" id="admin-status">สถานะ: <span class="font-semibold text-red-600">Guest</span></div>
+          </div>
+
+          <!-- Login Row -->
+          <div class="mt-4 flex gap-3 items-end">
+            <div class="flex-1">
+              <label class="text-sm text-gray-600">รหัสผ่าน Admin</label>
+              <input type="password" id="admin-pass" class="w-full border rounded-lg px-3 py-2" placeholder="ใส่รหัส: admin123" />
+            </div>
+            <button id="btn-admin-login" class="px-4 py-2 rounded-xl bg-amber-500 text-white hover:bg-amber-600">ล็อคอิน</button>
+            <button id="btn-admin-logout" class="px-4 py-2 rounded-xl bg-gray-200 text-gray-700 hover:bg-gray-300 hidden">ออกจากระบบ</button>
+          </div>
+
+          <!-- Editor (visible for Admin) -->
+          <div id="admin-editor" class="mt-6 hidden">
+            <div class="text-sm text-gray-600 mb-3">สิทธิ์ Admin สามารถแก้ไข/อัปเดตสถานะทั้งหมดจากตารางที่แท็บ Dashboard</div>
+            <div class="rounded-lg bg-violet-50 border border-violet-200 p-4 text-sm">
+              อัปเดตสถานะ: กำหนดชื่อผู้อัปเดตเป็น <span class="font-semibold">Admin วอ</span>, <span class="font-semibold">Admin Operation</span>, หรือ <span class="font-semibold">Admin ซ่อม</span> ภายใน Modal
+            </div>
+          </div>
         </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Modal -->
+  <div id="modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-semibold" id="modal-title">รายละเอียด</h3>
+        <button id="modal-close" class="text-gray-500 hover:text-gray-700">&times;</button>
+      </div>
+      <div class="mt-4 space-y-3" id="modal-body">
+        <!-- Filled by JS -->
+      </div>
+      <div class="mt-6 flex justify-end gap-3">
+        <button id="modal-cancel" class="px-4 py-2 rounded-xl bg-gray-200 text-gray-700 hover:bg-gray-300">ปิด</button>
+        <button id="modal-save" class="px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700">บันทึก</button>
       </div>
     </div>
   </div>
 
-  <footer class="py-10">
-    <div class="max-w-6xl mx-auto text-center text-sm text-gray-600">© 2025 Soc App พัฒนาโดย วรวิทย์ ศรีรักษา</div>
+  <!-- Footer -->
+  <footer class="bg-white border-t mt-8">
+    <div class="max-w-6xl mx-auto px-4 py-6 text-center text-sm text-gray-500">
+      © 2025 Soc App พัฒนาโดย วรวิทย์ ศรีรักษา
+    </div>
   </footer>
 
-<script>
-// ================== LOCAL STORE ==================
-const LS_KEY = 'soc_app_data';
-const initialData = { records: [], meta: { version: 1 } };
-let store = loadStore();
-let adminLogged = false;
-let dt; // DataTable
-let selectedRowId = null; // for quick status
-let chart;
+  <script>
+    // ======= Config =======
+    const GAS_EXEC_URL = "https://script.google.com/macros/s/AKfycbyM-zK5baVOPBl1P_UKk59Sm2KFYaHjRrtDun2b63OtirNZ4-7RmDBCIRBfsPZETg-L/exec";
+    const SHEET_ID = "1CVktJUFaYVQpLHHDiKDFanZzjx5J_BxQzMnTKwnLD48";
+    const DRIVE_FOLDER_ID = "170CE-whM4WsW4vtmgdJVNMam0oELQAsh";
 
-// ---------------- Local helpers ----------------
-function loadStore(){ try{ const raw = localStorage.getItem(LS_KEY); return raw? JSON.parse(raw): structuredClone(initialData);}catch(e){return structuredClone(initialData);}}
-function saveStore(){ localStorage.setItem(LS_KEY, JSON.stringify(store)); refreshSummary(); refreshChart(); if (dt) dt.rows().invalidate().draw(false); }
-function uid(){ return 'id_' + Math.random().toString(36).slice(2,10); }
-function formatDateISO(d){ const t=new Date(d); if(isNaN(t)) return ''; const y=t.getFullYear(), m=String(t.getMonth()+1).padStart(2,'0'), day=String(t.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`;}
-function todayISO(){ return formatDateISO(new Date()); }
-function weekRange(date=new Date()){ const d=new Date(date); const day=(d.getDay()+6)%7; const start=new Date(d); start.setDate(d.getDate()-day); const end=new Date(start); end.setDate(start.getDate()+6); return [formatDateISO(start),formatDateISO(end)]; }
-function monthRange(date=new Date()){ const d=new Date(date); const start=new Date(d.getFullYear(),d.getMonth(),1); const end=new Date(d.getFullYear(),d.getMonth()+1,0); return [formatDateISO(start),formatDateISO(end)]; }
-function escapeHtml(s=''){ return s.replace(/[&<>\"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
-function toDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=e=>res(e.target.result); r.onerror=rej; r.readAsDataURL(file); }); }
+    // ======= State =======
+    let socData = JSON.parse(localStorage.getItem("socData") || "[]");
+    let admin = JSON.parse(localStorage.getItem("admin") || "null"); // {name: 'Admin วอ'|'Admin Operation'|'Admin ซ่อม', isLoggedIn: true}
 
-// ================== API HELPERS (using google.script.run) ==================
-function apiCall(action, payload = {}) {
-  return new Promise((resolve, reject) => {
-    google.script.run
-      .withSuccessHandler(data => resolve({ ok: true, data }))
-      .withFailureHandler(err => reject({ ok: false, message: String(err) }))
-      [action](payload);
-  });
-}
-
-async function apiList() {
-  try {
-    const r = await apiCall('list');
-    return r.ok ? r.data : [];
-  } catch (err) {
-    return [];
-  }
-}
-
-async function apiCreate(rec) {
-  try {
-    const r = await apiCall('create', rec);
-    return r.ok ? r.data : null;
-  } catch (err) {
-    throw err;
-  }
-}
-
-async function apiUpdate(rec) {
-  try {
-    const r = await apiCall('update', rec);
-    return r.ok;
-  } catch (err) {
-    throw err;
-  }
-}
-
-async function apiDelete(id) {
-  try {
-    const r = await apiCall('delete_', { id }); // Use delete_ to avoid reserved word conflict
-    return r.ok;
-  } catch (err) {
-    throw err;
-  }
-}
-
-async function apiExport() {
-  try {
-    const r = await apiCall('exportExcel');
-    return r.ok ? r.data : null;
-  } catch (err) {
-    throw err;
-  }
-}
-
-// ================== UI: Tabs ==================
-function setTab(tabId){
-  document.querySelectorAll('[id^="tab-"]').forEach(el=>el.classList.add('hidden-tab'));
-  document.getElementById(tabId).classList.remove('hidden-tab');
-  document.querySelectorAll('.tab-btn').forEach(btn=>btn.classList.remove('underline-tab'));
-  document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('underline-tab');
-}
-
-// ================== Dashboard ==================
-function refreshSummary(){
-  const total = store.records.length;
-  const pending = store.records.filter(r=>r.status==='รอดำเนินการ').length;
-  const done = store.records.filter(r=>r.status==='เสร็จสิ้น').length;
-  $('#sumTotal').text(total); $('#sumPending').text(pending); $('#sumDone').text(done);
-}
-
-function refreshChart(){
-  const counts = {}; store.records.forEach(r=>{ counts[r.floor]=(counts[r.floor]||0)+1; });
-  const entries = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  const labels = entries.map(e=>e[0]); const data = entries.map(e=>e[1]);
-  const ctx = document.getElementById('topFloorsChart').getContext('2d');
-  if (chart) chart.destroy();
-  chart = new Chart(ctx, { type:'bar', data:{ labels, datasets:[{ label:'จำนวน', data }] }, options:{ responsive:true, plugins:{ legend:{ display:false }}}});
-}
-
-// ================== DataTable ==================
-function buildTable(){
-  if (dt) { dt.destroy(); $('#socTable tbody').empty(); }
-  store.records.forEach(r=>{
-    $('#socTable tbody').append(`
-      <tr data-id="${r.id}">
-        <td>${r.date}</td>
-        <td class="max-w-[260px] whitespace-pre-wrap">${escapeHtml(r.detail)}</td>
-        <td>${r.floor}</td>
-        <td>${r.who}</td>
-        <td>${r.status}</td>
-        <td>${r.fileName ? `<a href="${r.fileUrl || r.fileDataURL || '#'}" class="underline" target="_blank" rel="noopener">${r.fileName}</a>` : '—'}</td>
-        <td>
-          <div class="flex items-center gap-2">
-            <button class="btn-view px-2 py-1 rounded-md bg-blue-100 hover:bg-blue-200" title="ดู">
-              <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7zm0 12a5 5 0 110-10 5 5 0 010 10z"/></svg>
-            </button>
-            <button class="btn-edit px-2 py-1 rounded-md bg-amber-100 hover:bg-amber-200" title="แก้ไข" ${!adminLogged?'disabled':''}>
-              <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.2V21h3.8l11-11-3.8-3.8-11 11zM20.7 7.0c.4-.4.4-1 0-1.4L18.4 3.3c-.4-.4-1-.4-1.4 0l-1.8 1.8 3.8 3.8 1.7-1.7z"/></svg>
-            </button>
-            <button class="btn-del px-2 py-1 rounded-md bg-rose-100 hover:bg-rose-200" title="ลบ" ${!adminLogged?'disabled':''}>
-              <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M6 7h12v2H6V7zm2 3h8l-1 10H9L8 10zm3-7h2l1 2H10l1-2z"/></svg>
-            </button>
-          </div>
-        </td>
-      </tr>
-    `);
-  });
-  dt = new DataTable('#socTable', { responsive:true, pageLength:10, order:[[0,'desc']], columnDefs:[{targets:[6],orderable:false}], language:{ url:'https://cdn.datatables.net/plug-ins/1.13.7/i18n/th.json' } });
-}
-
-function applyDateQuickFilter(mode){
-  const colIdx=0; const [wStart,wEnd]=weekRange(); const [mStart,mEnd]=monthRange(); const today=todayISO();
-  if (mode==='day'){ dt.column(colIdx).search('^'+today+'$', true, false).draw(); }
-  else if (mode==='week'){
-    $.fn.dataTable.ext.search=$.fn.dataTable.ext.search||[];
-    $.fn.dataTable.ext.search.length=0;
-    $.fn.dataTable.ext.search.push((settings,data)=>{ const d=data[colIdx]; return d>=wStart && d<=wEnd; });
-    dt.draw(); dt.column(colIdx).search('');
-  } else if (mode==='month'){
-    $.fn.dataTable.ext.search=$.fn.dataTable.ext.search||[];
-    $.fn.dataTable.ext.search.length=0;
-    $.fn.dataTable.ext.search.push((settings,data)=>{ const d=data[colIdx]; return d>=mStart && d<=mEnd; });
-    dt.draw(); dt.column(colIdx).search('');
-  } else { $.fn.dataTable.ext.search.length=0; dt.column(colIdx).search('').draw(); }
-}
-
-// ================== Form submit ==================
-$('#socForm').validate({
-  rules:{ date:{required:true}, detail:{required:true,minlength:3}, floor:{required:true}, who:{required:true} },
-  submitHandler: async function(form){
-    $.LoadingOverlay('show');
-    try{
-      const fileInput = document.getElementById('file');
-      let fileObj = { fileName:'', fileType:'', fileDataURL:'', fileUrl:'' };
-      if (fileInput.files && fileInput.files[0]){
-        const f=fileInput.files[0];
-        const ok=['application/pdf','image/jpeg','image/png'].includes(f.type);
-        if(!ok){ $.LoadingOverlay('hide'); Swal.fire('ประเภทไฟล์ไม่ถูกต้อง','รองรับเฉพาะ PDF, JPG, PNG','warning'); return; }
-        fileObj.fileName=f.name; fileObj.fileType=f.type; fileObj.fileDataURL=await toDataURL(f);
+    // ======= Helpers =======
+    function saveState() {
+      localStorage.setItem("socData", JSON.stringify(socData));
+    }
+    function fmtDate(d) {
+      if (!d) return "";
+      const dt = new Date(d);
+      return dt.toISOString().slice(0,10);
+    }
+    function renderCards() {
+      const total = socData.length;
+      const pending = socData.filter(x => (x.status||'รอดำเนินการ') === 'รอดำเนินการ').length;
+      const done = socData.filter(x => x.status === 'เสร็จสิ้น').length;
+      $("#card-total").text(total);
+      $("#card-pending").text(pending);
+      $("#card-done").text(done);
+    }
+    function top5Floors() {
+      const counts = {};
+      socData.forEach(x => {
+        const f = x.floor || "อื่นๆ";
+        counts[f] = (counts[f]||0)+1;
+      });
+      return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    }
+    function renderTop5() {
+      const list = $("#top5").empty();
+      top5Floors().forEach(([floor, cnt])=>{
+        list.append(`<li><span class="font-medium">${floor}</span> - ${cnt} รายการ</li>`);
+      });
+    }
+    function renderAdminStatus() {
+      if (admin && admin.isLoggedIn) {
+        $("#admin-status").html('สถานะ: <span class="font-semibold text-emerald-600">Admin</span>');
+        $("#btn-admin-login").addClass("hidden");
+        $("#btn-admin-logout").removeClass("hidden");
+        $("#admin-editor").removeClass("hidden");
+      } else {
+        $("#admin-status").html('สถานะ: <span class="font-semibold text-red-600">Guest</span>');
+        $("#btn-admin-login").removeClass("hidden");
+        $("#btn-admin-logout").addClass("hidden");
+        $("#admin-editor").addClass("hidden");
       }
-      const rec={ id:uid(), date:$('#date').val(), detail:$('#detail').val().trim(), floor:$('#floor').val(), who:$('#who').val(), status:'รอดำเนินการ', ...fileObj, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(), updatedBy:'' };
-
-      const created = await apiCreate(rec);
-      if (!created){ throw new Error('บันทึกขึ้น Google Sheet ไม่สำเร็จ'); }
-      // sync from server
-      store.records = await apiList();
-      saveStore();
-      form.reset();
-      $.LoadingOverlay('hide');
-      Swal.fire('ส่งคำขอเรียบร้อย','','success');
-    }catch(e){
-      $.LoadingOverlay('hide'); Swal.fire('เกิดข้อผิดพลาด', e.message || 'ไม่สามารถบันทึกได้', 'error');
     }
-  }
-});
-
-// ================== Modal handlers ==================
-function openModalById(id){
-  const rec = store.records.find(r=>r.id===id); if(!rec) return;
-  $('#modalId').val(rec.id); $('#modalDate').val(rec.date); $('#modalDetail').val(rec.detail); $('#modalFloor').val(rec.floor); $('#modalWho').val(rec.who); $('#modalStatus').val(rec.status);
-  if (rec.fileName){
-    const href = rec.fileUrl || rec.fileDataURL || '#';
-    $('#modalFileArea').html(`<div class="flex items-center gap-2"><a class="underline" href="${href}" target="_blank" rel="noopener">${rec.fileName}</a><span class="text-xs text-gray-500">(${rec.fileType||'ไฟล์แนบ'})</span></div>`);
-  } else { $('#modalFileArea').text('— ไม่มีไฟล์แนบ —'); }
-  $('#modalForm :input').prop('disabled', !adminLogged);
-  $('#modalSave').prop('disabled', !adminLogged);
-  $('#modalDelete').prop('disabled', !adminLogged);
-  $('#modal').removeClass('hidden');
-}
-$('#modalClose').on('click', ()=> $('#modal').addClass('hidden'));
-$('#socTable').on('click','.btn-view', function(){ const id=$(this).closest('tr').data('id'); selectedRowId=id; openModalById(id); });
-$('#socTable').on('click','.btn-edit', function(){ if(!adminLogged) return; const id=$(this).closest('tr').data('id'); selectedRowId=id; openModalById(id); });
-$('#socTable').on('click','.btn-del', async function(){
-  if(!adminLogged) return; const id=$(this).closest('tr').data('id'); const rec=store.records.find(r=>r.id===id);
-  const res=await Swal.fire({ title:'ยืนยันการลบ?', text:`ต้องการลบรายการวันที่ ${rec?.date||''} ใช่หรือไม่`, icon:'warning', showCancelButton:true, confirmButtonText:'ลบ', cancelButtonText:'ยกเลิก' });
-  if (res.isConfirmed){
-    await apiDelete(id);
-    store.records = await apiList();
-    saveStore(); Swal.fire('ลบแล้ว','','success');
-  }
-});
-
-$('#modalSave').on('click', async function(){
-  if(!adminLogged) return;
-  $.LoadingOverlay('show');
-  try{
-    const id=$('#modalId').val();
-    const idx=store.records.findIndex(r=>r.id===id);
-    if (idx<0) throw new Error('ไม่พบรายการ');
-
-    // optional file change
-    const fileInput=document.getElementById('modalFile');
-    if (fileInput.files && fileInput.files[0]){
-      const f=fileInput.files[0];
-      const ok=['application/pdf','image/jpeg','image/png'].includes(f.type);
-      if (!ok) throw new Error('ประเภทไฟล์ไม่ถูกต้อง');
-      store.records[idx].fileName=f.name;
-      store.records[idx].fileType=f.type;
-      store.records[idx].fileDataURL=await toDataURL(f);
-      store.records[idx].fileUrl=''; // reset until uploaded
-    }
-
-    store.records[idx].date=$('#modalDate').val();
-    store.records[idx].detail=$('#modalDetail').val().trim();
-    store.records[idx].floor=$('#modalFloor').val();
-    store.records[idx].who=$('#modalWho').val();
-    store.records[idx].status=$('#modalStatus').val();
-    store.records[idx].updatedAt=new Date().toISOString();
-    store.records[idx].updatedBy=$('#adminUpdater').val() || 'Admin';
-
-    const ok = await apiUpdate(store.records[idx]);
-    if (!ok) throw new Error('อัปเดตขึ้น Google Sheet ไม่สำเร็จ');
-    store.records = await apiList();
-
-    saveStore(); $('#modal').addClass('hidden'); $.LoadingOverlay('hide'); Swal.fire('บันทึกสำเร็จ','','success');
-  }catch(e){ $.LoadingOverlay('hide'); Swal.fire('เกิดข้อผิดพลาด', e.message || 'ไม่สามารถบันทึกได้', 'error'); }
-});
-
-// ================== Admin login/logout ==================
-function refreshAdminUI(){
-  $('#adminState').text(adminLogged ? 'Admin' : 'ผู้ใช้งานทั่วไป')
-    .toggleClass('text-emerald-600', adminLogged)
-    .toggleClass('text-gray-800', !adminLogged);
-  $('#adminBadge').text('สถานะ: ' + (adminLogged ? 'Admin' : 'ผู้ใช้งานทั่วไป'))
-    .removeClass('bg-gray-200 bg-emerald-100')
-    .addClass(adminLogged ? 'bg-emerald-100' : 'bg-gray-200');
-  $('#socTable tbody tr').each(function(){ $(this).find('.btn-edit,.btn-del').prop('disabled', !adminLogged); });
-  $('#adminPanel').toggleClass('hidden', !adminLogged);
-  $('#adminLoginArea').toggleClass('hidden', adminLogged);
-}
-$('#btnAdminLogin').on('click', function(){
-  const pw=$('#adminPass').val();
-  if (pw==='admin123'){ adminLogged=true; $('#adminPass').val(''); refreshAdminUI(); Swal.fire('เข้าสู่ระบบสำเร็จ','','success'); }
-  else { Swal.fire('รหัสไม่ถูกต้อง','','error'); }
-});
-$('#btnAdminLogout').on('click', function(){ adminLogged=false; refreshAdminUI(); Swal.fire('ออกจากระบบแล้ว','','success'); });
-$('.quick-status').on('click', async function(){
-  if(!adminLogged) return; const status=$(this).data('status'); const updater=$('#adminUpdater').val()||'Admin';
-  const applyTo = async (id)=>{
-    const rec=store.records.find(r=>r.id===id); if(!rec) return;
-    rec.status=status; rec.updatedAt=new Date().toISOString(); rec.updatedBy=updater;
-    await apiUpdate(rec);
-    store.records = await apiList();
-    saveStore(); Swal.fire('อัปเดตสถานะแล้ว', `สถานะใหม่: ${status}`, 'success');
-  };
-  if (selectedRowId){ await applyTo(selectedRowId); }
-  else {
-    const options=store.records.map(r=>({id:r.id,text:`${r.date} • ${r.floor} • ${r.detail.slice(0,30)}${r.detail.length>30?'…':''}`}));
-    if(!options.length){ Swal.fire('ไม่มีรายการ','','info'); return; }
-    const inputOptions={}; options.forEach(o=> inputOptions[o.id]=o.text);
-    const res=await Swal.fire({ title:'เลือกแถวที่ต้องการอัปเดต', input:'select', inputOptions, showCancelButton:true, confirmButtonText:'อัปเดต' });
-    if (res.isConfirmed && res.value) await applyTo(res.value);
-  }
-});
-
-// ================== Export ==================
-$('#btnExportLocal').on('click', function(){
-  if(!store.records.length){ Swal.fire('ไม่มีข้อมูลให้ดาวน์โหลด','','info'); return; }
-  const rows = store.records.map(r=>({ วันที่ตรวจเช็ค:r.date, รายละเอียดที่พบ:r.detail, ชั้น:r.floor, ผู้ตรวจเช็ค_ผู้พบเจอ:r.who, สถานะ:r.status, ผู้อัปเดตสถานะ:r.updatedBy||'', เวลาอัปเดต:r.updatedAt, ไฟล์แนบ:r.fileName||'' }));
-  const ws=XLSX.utils.json_to_sheet(rows); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'SOC');
-  const fileName = `SOC_All_${formatDateISO(new Date())}.xlsx`; XLSX.writeFile(wb, fileName);
-});
-
-$('#btnExportDrive').on('click', async function(){
-  $.LoadingOverlay('show');
+async function syncFromSheet() {
   try {
-    const message = await apiExport();
-    $.LoadingOverlay('hide');
-    Swal.fire('ส่งออกขึ้น Google Drive แล้ว', message || '', 'success');
-  } catch (err) {
-    $.LoadingOverlay('hide');
-    Swal.fire('ไม่สามารถส่งออกขึ้น Google Drive ได้', err.message || '', 'error');
+    $.LoadingOverlay("show");
+    const res = await fetch(`${GAS_EXEC_URL}?mode=list`);
+    const json = await res.json();
+    if (json.ok) {
+      // map ข้อมูลจากชีต -> โครงสร้างที่ตารางใช้
+      socData = (json.rows || []).map(r => ({
+        id: r.id,
+        date: r.date ? new Date(r.date).toISOString().slice(0,10) : "",
+        detail: r.detail || "",
+        floor: r.floor || "",
+        reporter: r.reporter || "",
+        status: r.status || "รอดำเนินการ",
+        fileUrl: r.fileUrl || "",
+        updater: r.updater || ""
+      }));
+      saveState();
+      rebuildTable();
+      renderCards();
+      renderTop5();
+    } else {
+      console.error(json);
+      Swal.fire('โหลดข้อมูลจากชีตไม่สำเร็จ', '', 'error');
+    }
+  } catch (e) {
+    console.error(e);
+    Swal.fire('เกิดข้อผิดพลาดในการโหลดข้อมูล', '', 'error');
+  } finally {
+    $.LoadingOverlay("hide");
   }
-});
-
-// ================== Init ==================
-async function syncFromServerIfAny(){
-  store.records = await apiList();
-  saveStore();
 }
 
-$(function(){
-  setTab('tab-dashboard'); refreshSummary(); refreshChart(); buildTable(); refreshAdminUI();
-  $('.tab-btn').on('click', function(){ const t=$(this).data('tab'); setTab(t); });
-  $('#dateQuickFilter').on('change', function(){ applyDateQuickFilter(this.value); });
-  $('#socTable tbody').on('click','tr', function(e){ if($(e.target).closest('button,a').length) return; $('#socTable tbody tr').removeClass('bg-emerald-50'); $(this).addClass('bg-emerald-50'); selectedRowId=$(this).data('id'); });
-  // initial pull
-  syncFromServerIfAny();
+    // ======= Tabs =======
+    function activateTab(selector) {
+      $(".tab-panel").addClass("hidden");
+      $(".tab-btn").removeClass("tab-active");
+      $(selector).removeClass("hidden");
+      $(`[data-target='${selector}']`).addClass("tab-active");
+    }
+    $("#tabs").on("click", ".tab-btn", function(){
+      const target = $(this).data("target");
+      activateTab(target);
+    });
+
+    // ======= DataTable =======
+    let table;
+    function rebuildTable() {
+      if (table) table.destroy();
+      const tbody = $("#socTable tbody").empty();
+      socData.forEach((row, idx)=>{
+        const actions = `
+          <div class="flex gap-2">
+            <button class="btn-view px-3 py-1 rounded-lg bg-sky-100 text-sky-700" data-index="${idx}">ดู</button>
+            <button class="btn-edit px-3 py-1 rounded-lg bg-amber-100 text-amber-700" data-index="${idx}">แก้ไข</button>
+            <button class="btn-del px-3 py-1 rounded-lg bg-rose-100 text-rose-700" data-index="${idx}">ลบ</button>
+          </div>`;
+        const status = row.status || "รอดำเนินการ";
+        tbody.append(`<tr>
+          <td class="px-3 py-2">${fmtDate(row.date)}</td>
+          <td class="px-3 py-2">${$("<div>").text(row.detail).html()}</td>
+          <td class="px-3 py-2">${row.floor||""}</td>
+          <td class="px-3 py-2">${row.reporter||""}</td>
+          <td class="px-3 py-2">${status}</td>
+          <td class="px-3 py-2">${actions}</td>
+        </tr>`);
+      });
+      table = new DataTable('#socTable', {
+        responsive: true,
+        order: [[0, 'desc']],
+        language: {
+          url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/th.json"
+        }
+      });
+    }
+
+    // ======= Date filter (day/week/month) =======
+    function applyDateFilter() {
+      const mode = $("#date-filter").val();
+      const anchor = $("#date-anchor").val();
+      if (mode === 'all' || !anchor) {
+        table.search("").draw();
+        return;
+      }
+      const base = new Date(anchor);
+      function inRange(d) {
+        const td = new Date(d);
+        if (mode==='day') {
+          return td.toDateString() === base.toDateString();
+        } else if (mode==='week') {
+          const diff = (td - base) / (1000*60*60*24);
+          return diff <= 3 && diff >= -3; // approx 7-day window
+        } else if (mode==='month') {
+          return td.getMonth()===base.getMonth() && td.getFullYear()===base.getFullYear();
+        }
+        return true;
+      }
+      // custom filter
+      table.rows().every(function(){
+        const d = this.data()[0];
+        const show = inRange(d);
+        $(this.node()).toggle(show);
+      });
+    }
+    $("#date-filter, #date-anchor").on("change", applyDateFilter);
+
+    // ======= Modal =======
+    let editingIndex = null;
+    function openModal(title, bodyHtml) {
+      $("#modal-title").text(title);
+      $("#modal-body").html(bodyHtml);
+      $("#modal").removeClass("hidden").addClass("flex");
+    }
+    function closeModal() {
+      $("#modal").addClass("hidden").removeClass("flex");
+      editingIndex = null;
+    }
+    $("#modal-close, #modal-cancel").on("click", closeModal);
+
+    // ======= Actions (view/edit/delete) =======
+    $("#socTable").on("click", ".btn-view", function(){
+      const i = +$(this).data("index");
+      const row = socData[i];
+      const html = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><div class="text-gray-500 text-xs">วันที่ตรวจเช็ค</div><div class="font-medium">${fmtDate(row.date)}</div></div>
+          <div><div class="text-gray-500 text-xs">ชั้น</div><div class="font-medium">${row.floor}</div></div>
+          <div class="md:col-span-2"><div class="text-gray-500 text-xs">รายละเอียด</div><div class="font-medium whitespace-pre-wrap">${$("<div>").text(row.detail).html()}</div></div>
+          <div><div class="text-gray-500 text-xs">ผู้พบเจอ</div><div class="font-medium">${row.reporter}</div></div>
+          <div><div class="text-gray-500 text-xs">สถานะ</div><div class="font-medium">${row.status||'รอดำเนินการ'}</div></div>
+          ${row.fileUrl? `<div class="md:col-span-2"><a class="text-indigo-600 underline" href="${row.fileUrl}" target="_blank">ไฟล์แนบ</a></div>`: ''}
+        </div>`;
+      openModal("ดูรายละเอียด", html);
+      $("#modal-save").addClass("hidden");
+    });
+
+    $("#socTable").on("click", ".btn-edit", function(){
+      const i = +$(this).data("index");
+      const row = socData[i];
+      editingIndex = i;
+      const isAdmin = admin && admin.isLoggedIn;
+      const html = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm text-gray-600">วันที่ตรวจเช็ค</label>
+            <input type="date" id="m_date" class="w-full border rounded-lg px-3 py-2" value="${fmtDate(row.date)}" ${!isAdmin?'disabled':''}>
+          </div>
+          <div>
+            <label class="text-sm text-gray-600">ชั้น</label>
+            <select id="m_floor" class="w-full border rounded-lg px-3 py-2" ${!isAdmin?'disabled':''}>
+              ${["ชั้น9","ชั้น8","ชั้น7","ชั้น6","ชั้น5","ชั้น4","ชั้น3","ชั้น2","ชั้น1","Packer","Pallet","อื่นๆ"].map(f=>`<option ${f===row.floor?'selected':''}>${f}</option>`).join("")}
+            </select>
+          </div>
+          <div class="md:col-span-2">
+            <label class="text-sm text-gray-600">รายละเอียด</label>
+            <textarea id="m_detail" rows="3" class="w-full border rounded-lg px-3 py-2" ${!isAdmin?'disabled':''}>${$("<div>").text(row.detail).html()}</textarea>
+          </div>
+          <div>
+            <label class="text-sm text-gray-600">ผู้พบเจอ</label>
+            <select id="m_reporter" class="w-full border rounded-lg px-3 py-2" ${!isAdmin?'disabled':''}>
+              ${["Operation","Local","แม่บ้าน","Am","ซ่อม","อื่นๆ"].map(n=>`<option ${n===row.reporter?'selected':''}>${n}</option>`).join("")}
+            </select>
+          </div>
+          <div>
+            <label class="text-sm text-gray-600">สถานะ</label>
+            <select id="m_status" class="w-full border rounded-lg px-3 py-2">
+              ${["รอดำเนินการ","เสร็จสิ้น"].map(s=>`<option ${s===(row.status||'รอดำเนินการ')?'selected':''}>${s}</option>`).join("")}
+            </select>
+          </div>
+          <div class="md:col-span-2">
+            <label class="text-sm text-gray-600">ชื่อผู้อัปเดตสถานะ</label>
+            <select id="m_updater" class="w-full border rounded-lg px-3 py-2">
+              ${["Admin วอ","Admin Operation","Admin ซ่อม"].map(u=>`<option ${u===(row.updater||'')?'selected':''}>${u}</option>`).join("")}
+            </select>
+          </div>
+          ${row.fileUrl? `<div class="md:col-span-2"><a class="text-indigo-600 underline" href="${row.fileUrl}" target="_blank">ไฟล์แนบ</a></div>`: ''}
+        </div>`;
+      openModal("แก้ไขรายการ (Admin)", html);
+      $("#modal-save").removeClass("hidden");
+      if (!(admin && admin.isLoggedIn)) {
+        $("#modal-save").prop("disabled", true).addClass("opacity-50 cursor-not-allowed");
+      } else {
+        $("#modal-save").prop("disabled", false).removeClass("opacity-50 cursor-not-allowed");
+      }
+    });
+
+    $("#socTable").on("click", ".btn-del", function(){
+      const i = +$(this).data("index");
+      Swal.fire({
+        title: 'ยืนยันการลบ?',
+        text: 'คุณต้องการลบรายการนี้ใช่หรือไม่',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'ลบ',
+        cancelButtonText: 'ยกเลิก'
+      }).then(res => {
+        if (res.isConfirmed) {
+          socData.splice(i,1);
+          saveState();
+          rebuildTable();
+          renderCards();
+          renderTop5();
+          Swal.fire('ลบแล้ว', '', 'success');
+        }
+      });
+    });
+
+    $("#modal-save").on("click", function(){
+      if (editingIndex===null) return;
+      const r = socData[editingIndex];
+      r.date = $("#m_date").val();
+      r.floor = $("#m_floor").val();
+      r.detail = $("#m_detail").val();
+      r.reporter = $("#m_reporter").val();
+      r.status = $("#m_status").val();
+      r.updater = $("#m_updater").val();
+      saveState();
+      closeModal();
+      rebuildTable();
+      renderCards();
+      renderTop5();
+      Swal.fire('บันทึกสำเร็จ', '', 'success');
+    });
+
+    // ======= Admin login =======
+    $("#btn-admin-login").on("click", function(){
+      const pass = $("#admin-pass").val();
+      if (pass === "admin123") {
+        admin = {isLoggedIn: true, name: "Admin"};
+        localStorage.setItem("admin", JSON.stringify(admin));
+        renderAdminStatus();
+        Swal.fire('ล็อคอินสำเร็จ', '', 'success');
+      } else {
+        Swal.fire('รหัสผ่านไม่ถูกต้อง', '', 'error');
+      }
+    });
+    $("#btn-admin-logout").on("click", function(){
+      admin = null;
+      localStorage.removeItem("admin");
+      renderAdminStatus();
+      Swal.fire('ออกจากระบบแล้ว', '', 'success');
+    });
+
+    // ======= Form submit =======
+    $("#socForm").validate({
+      rules: {
+        date: { required: true },
+        detail: { required: true, minlength: 3 },
+        floor: { required: true },
+        reporter: { required: true }
+      },
+      submitHandler: function(form, e){
+        e.preventDefault();
+        const fd = new FormData();
+        const data = {
+          date: $("#date").val(),
+          detail: $("#detail").val(),
+          floor: $("#floor").val(),
+          reporter: $("#reporter").val(),
+          status: "รอดำเนินการ"
+        };
+        fd.append("payload", JSON.stringify(data));
+        const file = $("#file")[0].files[0];
+        if (file) fd.append("file", file);
+
+        $.LoadingOverlay("show");
+        fetch(GAS_EXEC_URL, { method: "POST", body: fd })
+          .then(r=>r.json())
+          .then(res=>{
+            // res: { ok:true, row: {...}, fileUrl?:string }
+            const row = Object.assign({}, data, { id: res.id || Date.now(), fileUrl: res.fileUrl || "" });
+            socData.push(row);
+            saveState();
+            rebuildTable();
+            renderCards();
+            renderTop5();
+            Swal.fire('ส่งคำขอเรียบร้อย', '', 'success');
+            $("#socForm")[0].reset();
+          })
+          .catch(err=>{
+            console.error(err);
+            Swal.fire('เกิดข้อผิดพลาดในการส่งข้อมูล', '', 'error');
+          })
+          .finally(()=>$.LoadingOverlay("hide"));
+      }
+    });
+
+    // ======= Download Excel (Single button) =======
+   $("#btn-download-xlsx").on("click", function () {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx`;
+  window.open(url, "_blank");
+    });
+
+    // ======= Init =======
+    $(function(){
+      activateTab("#tab-dashboard");
+      rebuildTable();
+      renderCards();
+      renderTop5();
+      renderAdminStatus();
+      const today = new Date().toISOString().slice(0,10);
+      $("#date-anchor").val(today);
+      $("#date").val(today);
+        // โหลดข้อมูลจาก Google Sheet
+  syncFromSheet();
 });
-</script>
+  </script>
 </body>
 </html>
