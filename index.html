@@ -1,3 +1,5 @@
+<!-- Index.html (สมบูรณ์ - คัดลอก HTML เดิมและแทนที่ <script> ด้วยส่วน JS ที่ปรับแล้วด้านล่าง) -->
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -311,10 +313,6 @@
   </footer>
 
 <script>
-// ================== CONFIG ==================
-const API_URL = "https://script.google.com/macros/s/AKfycbz7VuWLrFhpN1MkmTStdaEti3BGmEziOu3VFknR02139gb_GRsRmGi1uTYYXR4IPykR8Q/exec"; // <-- วาง URL ของ Web App (Deploy > type: Web app > anyone)
-const USE_API = !!API_URL && !/YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL/.test(API_URL);
-
 // ================== LOCAL STORE ==================
 const LS_KEY = 'soc_app_data';
 const initialData = { records: [], meta: { version: 1 } };
@@ -335,37 +333,59 @@ function monthRange(date=new Date()){ const d=new Date(date); const start=new Da
 function escapeHtml(s=''){ return s.replace(/[&<>\"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
 function toDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=e=>res(e.target.result); r.onerror=rej; r.readAsDataURL(file); }); }
 
-// ================== API HELPERS ==================
-async function apiCall(action, payload={}){
-  if(!USE_API) return { ok:false, message:'API not configured' };
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type':'application/json' },
-    body: JSON.stringify({ action, payload })
+// ================== API HELPERS (using google.script.run) ==================
+function apiCall(action, payload = {}) {
+  return new Promise((resolve, reject) => {
+    google.script.run
+      .withSuccessHandler(data => resolve({ ok: true, data }))
+      .withFailureHandler(err => reject({ ok: false, message: String(err) }))
+      [action](payload);
   });
-  const data = await res.json().catch(()=>({ ok:false, message:'Invalid JSON' }));
-  return data;
 }
 
-async function apiList(){
-  const r = await apiCall('list', {});
-  return r.ok? r.data: [];
+async function apiList() {
+  try {
+    const r = await apiCall('list');
+    return r.ok ? r.data : [];
+  } catch (err) {
+    return [];
+  }
 }
-async function apiCreate(rec){
-  const r = await apiCall('create', rec);
-  return r.ok? r.data: null;
+
+async function apiCreate(rec) {
+  try {
+    const r = await apiCall('create', rec);
+    return r.ok ? r.data : null;
+  } catch (err) {
+    throw err;
+  }
 }
-async function apiUpdate(rec){
-  const r = await apiCall('update', rec);
-  return r.ok;
+
+async function apiUpdate(rec) {
+  try {
+    const r = await apiCall('update', rec);
+    return r.ok;
+  } catch (err) {
+    throw err;
+  }
 }
-async function apiDelete(id){
-  const r = await apiCall('delete', { id });
-  return r.ok;
+
+async function apiDelete(id) {
+  try {
+    const r = await apiCall('delete_', { id }); // Use delete_ to avoid reserved word conflict
+    return r.ok;
+  } catch (err) {
+    throw err;
+  }
 }
-async function apiExport(){
-  const r = await apiCall('export', {});
-  return r;
+
+async function apiExport() {
+  try {
+    const r = await apiCall('exportExcel');
+    return r.ok ? r.data : null;
+  } catch (err) {
+    throw err;
+  }
 }
 
 // ================== UI: Tabs ==================
@@ -456,15 +476,10 @@ $('#socForm').validate({
       }
       const rec={ id:uid(), date:$('#date').val(), detail:$('#detail').val().trim(), floor:$('#floor').val(), who:$('#who').val(), status:'รอดำเนินการ', ...fileObj, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(), updatedBy:'' };
 
-      if (USE_API){
-        const created = await apiCreate(rec);
-        if (!created){ throw new Error('บันทึกขึ้น Google Sheet ไม่สำเร็จ'); }
-        // sync from server instead of trusting local
-        const list = await apiList();
-        store.records = list;
-      }else{
-        store.records.push(rec);
-      }
+      const created = await apiCreate(rec);
+      if (!created){ throw new Error('บันทึกขึ้น Google Sheet ไม่สำเร็จ'); }
+      // sync from server
+      store.records = await apiList();
       saveStore();
       form.reset();
       $.LoadingOverlay('hide');
@@ -495,8 +510,8 @@ $('#socTable').on('click','.btn-del', async function(){
   if(!adminLogged) return; const id=$(this).closest('tr').data('id'); const rec=store.records.find(r=>r.id===id);
   const res=await Swal.fire({ title:'ยืนยันการลบ?', text:`ต้องการลบรายการวันที่ ${rec?.date||''} ใช่หรือไม่`, icon:'warning', showCancelButton:true, confirmButtonText:'ลบ', cancelButtonText:'ยกเลิก' });
   if (res.isConfirmed){
-    if (USE_API){ await apiDelete(id); const list=await apiList(); store.records=list; }
-    else { store.records = store.records.filter(r=>r.id!==id); }
+    await apiDelete(id);
+    store.records = await apiList();
     saveStore(); Swal.fire('ลบแล้ว','','success');
   }
 });
@@ -529,19 +544,12 @@ $('#modalSave').on('click', async function(){
     store.records[idx].updatedAt=new Date().toISOString();
     store.records[idx].updatedBy=$('#adminUpdater').val() || 'Admin';
 
-    if (USE_API){
-      const ok = await apiUpdate(store.records[idx]);
-      if (!ok) throw new Error('อัปเดตขึ้น Google Sheet ไม่สำเร็จ');
-      const list=await apiList();
-      store.records=list;
-    }
+    const ok = await apiUpdate(store.records[idx]);
+    if (!ok) throw new Error('อัปเดตขึ้น Google Sheet ไม่สำเร็จ');
+    store.records = await apiList();
 
     saveStore(); $('#modal').addClass('hidden'); $.LoadingOverlay('hide'); Swal.fire('บันทึกสำเร็จ','','success');
   }catch(e){ $.LoadingOverlay('hide'); Swal.fire('เกิดข้อผิดพลาด', e.message || 'ไม่สามารถบันทึกได้', 'error'); }
-});
-
-$('#socTable').on('click','.file-link', function(e){
-  // left for compatibility, now anchors use href
 });
 
 // ================== Admin login/logout ==================
@@ -567,7 +575,8 @@ $('.quick-status').on('click', async function(){
   const applyTo = async (id)=>{
     const rec=store.records.find(r=>r.id===id); if(!rec) return;
     rec.status=status; rec.updatedAt=new Date().toISOString(); rec.updatedBy=updater;
-    if (USE_API){ await apiUpdate(rec); const list=await apiList(); store.records=list; }
+    await apiUpdate(rec);
+    store.records = await apiList();
     saveStore(); Swal.fire('อัปเดตสถานะแล้ว', `สถานะใหม่: ${status}`, 'success');
   };
   if (selectedRowId){ await applyTo(selectedRowId); }
@@ -589,19 +598,21 @@ $('#btnExportLocal').on('click', function(){
 });
 
 $('#btnExportDrive').on('click', async function(){
-  if (!USE_API){ Swal.fire('ยังไม่ได้ตั้งค่า API_URL','','info'); return; }
   $.LoadingOverlay('show');
-  const r = await apiExport().catch(()=>({ok:false}));
-  $.LoadingOverlay('hide');
-  if (r && r.ok){ Swal.fire('ส่งออกขึ้น Google Drive แล้ว', r.message || '', 'success'); }
-  else { Swal.fire('ไม่สามารถส่งออกขึ้น Google Drive ได้', r && r.message ? r.message : '', 'error'); }
+  try {
+    const message = await apiExport();
+    $.LoadingOverlay('hide');
+    Swal.fire('ส่งออกขึ้น Google Drive แล้ว', message || '', 'success');
+  } catch (err) {
+    $.LoadingOverlay('hide');
+    Swal.fire('ไม่สามารถส่งออกขึ้น Google Drive ได้', err.message || '', 'error');
+  }
 });
 
 // ================== Init ==================
 async function syncFromServerIfAny(){
-  if (USE_API){
-    try{ const list=await apiList(); if (Array.isArray(list)){ store.records=list; saveStore(); } }catch(_){}
-  }
+  store.records = await apiList();
+  saveStore();
 }
 
 $(function(){
